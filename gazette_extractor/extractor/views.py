@@ -2,15 +2,13 @@ from django.shortcuts import render
 from .forms import FileUploadForm
 from django.conf import settings
 import os
+from django.http import JsonResponse
 
-#pytesseract
+# Imports for pytesseract, pdf2image, spaCy and langdetect
 import pytesseract
 from PIL import Image
-#convert pdf file into image
 from pdf2image import convert_from_path
-# spaCy
 import spacy
-# langdetect
 from langdetect import detect
 
 def upload_file(request):
@@ -25,7 +23,11 @@ def upload_file(request):
             extracted_text = process_file(file_path)
             # Intergrate NLP
             entities = process_text(extracted_text)
-            return render(request, 'extractor/success.html', {'text': extracted_text})
+            response = {
+                'Extracted Text': extracted_text,
+                'Entities': entities,
+            }
+            return JsonResponse(response)
     else:
         form = FileUploadForm()
     
