@@ -2,7 +2,8 @@ from django.shortcuts import render
 from .forms import FileUploadForm
 from django.conf import settings
 import os
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
+import json
 
 # Imports for pytesseract, pdf2image, spaCy and langdetect
 import pytesseract
@@ -22,12 +23,21 @@ def upload_file(request):
             file_path = os.path.join(settings.MEDIA_ROOT, upload_file.file.name)
             extracted_text = process_file(file_path)
             # Intergrate NLP
-            entities = process_text(extracted_text)
-            response = {
-                'Extracted Text': extracted_text,
-                'Entities': entities,
+            data = process_text(extracted_text)
+
+            # Prepare JSON reponse
+            response_data = {
+                'Company Name': data.get('Company Name', ''),
+                'Company Indentifier': data.get('Company Identifier', ''),
+                'Doument Purpose': data.get('Document Purpose', ''),
+                'Key Terms': data.get('Key Terms', []),
             }
-            return JsonResponse(response)
+
+            # Create a downloadable JSON file
+            response_json = json.dumps(response_data, indent=4)
+            response = HttpResponse(response_json, content_type='application/json')
+            response['Content-Disposition'] = 'attachment; filename="extracted_info.json"'
+            return response
     else:
         form = FileUploadForm()
     
@@ -59,6 +69,19 @@ def process_text(text):
     nlp = spacy.load(f"{language}_core_news_sm")
     doc = nlp(text)
 
+    # Initialize reulsts
+    data = {
+        'Company Name': '',
+        'Company Indentifier': '',
+        'Document Purpose': '',
+        'key Terms': [],
+    }
+
     # Extract entities 
-    entities = [(ent.text, ent.label_) for ent in doc.ents if ent.label_ in ["ORG", "MONEY"]]
-    return entities
+    for ent in doc.ents:
+        if ent.label_ == 'ORG':
+            data['Company Name'] = ent.text
+        elif ent.label_ == 'MONEY':
+            data['Company Indentifier'] = ent.text
+
+    return data
