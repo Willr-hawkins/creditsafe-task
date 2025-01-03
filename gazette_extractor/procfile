@@ -1,0 +1,1 @@
+web: gunicorn gazette_extractor.wsgi

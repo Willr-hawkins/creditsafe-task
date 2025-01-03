@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
+import django_heroku
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,12 +23,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-^2c5w#n1dx&)y&_h!zhj(mpt$u7$!__gj_o=)1ttah1vbl2o7^'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', '89%&6mzlc+)5*f+m9kj2p@0r#1zbf9g##*l(^7&i@tfyk0$=%f')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['8000-willrhawkin-creditsafet-a44vqio7qdl.ws-eu117.gitpod.io']
+ALLOWED_HOSTS = ['*']
 
 # Trusted Origins
 CSRF_TRUSTED_ORIGINS = [
@@ -84,10 +86,7 @@ WSGI_APPLICATION = 'gazette_extractor.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(default='sqlite:///db.sqlite3')
 }
 
 
@@ -126,6 +125,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media Files settings
 
@@ -136,3 +137,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Activate Django-Heroku settings
+django_heroku.settings(locals())
